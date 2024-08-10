@@ -1,0 +1,22 @@
+[
+    {
+      "name": "Fantasy Castle",
+      "description": "Draw a majestic castle with towers and a moat"
+    },
+    {
+      "name": "Self-Portrait",
+      "description": "Draw a self-portrait using different colors and textures"
+    },
+    {
+      "name": "Cityscape",
+      "description": "Draw a cityscape with skyscrapers and busy streets"
+    },
+    {
+      "name": "Animal Portrait",
+      "description": "Draw a portrait of your favorite animal"
+    },
+    {
+      "name": "Abstract Art",
+      "description": "Create an abstract art piece using different shapes and colors"
+    }
+  ]

@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/App.js',
+  entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'public'),
     filename: 'index.js',

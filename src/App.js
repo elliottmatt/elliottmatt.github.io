@@ -4,27 +4,42 @@ import './App.css';
 import itemsData from '../public/items.json';
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
   const [name, setName] = useState('');
   const [nameIsSet, setNameIsSet] = useState(false);
   const [itemName, setItemName] = useState('');
   const [itemDescription, setItemDescription] = useState('');
-  const [lastItemIndex, setLastItemIndex] = useState(0);
-  const [lastVisitDate, setLastVisitDate] = useState('');
-  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
+  const [lastItemIndex, setLastItemIndex] = useState(0); // all jacked up
+  const [prevItemIndex, setPrevItemIndex] = useState(-1); // all jacked up
+  const [currItemIndex, setCurrItemIndex] = useState(0); // all jacked up
+  const [lastVisitDate, setLastVisitDate] = useState(''); // all jacked up
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(true);
 
   const cookieName = 'masterpieces';
 
   useEffect(() => {
     const cookie = getCookie();
-    if (cookie) {
+    if (cookie && cookie.name) {
       setName(cookie.name);
       setNameIsSet(true);
-      setLastItemIndex(cookie.lastItemIndex);
-      setLastVisitDate(cookie.lastVisitDate);
-      setWelcomeModalOpen(true);
-    } else {
+
+      const lastVisitDate = new Date(cookie.lastVisitDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset today's date time to 00:00:00
+
+      setPrevItemIndex(cookie.lastItemIndex);
+      if (lastVisitDate < today) {
+        console.log("increasing the counter!");
+        setCurrItemIndex(cookie.lastItemIndex + 1);
+        setLastItemIndex(prevIndex => (prevIndex !== undefined ? prevIndex + 1 : 0));
+      } else {
+        setLastItemIndex(cookie.lastItemIndex);
+      }
+      
+      setLastVisitDate(today.toISOString()); // Update to today's date
       setWelcomeModalOpen(true);
     }
+    setTimeout(() => setIsLoading(false), 2000);
   }, []);
 
   useEffect(() => {
@@ -40,11 +55,12 @@ function App() {
   };
 
   const handleWelcomeModalClose = () => {
+    setCookie({ name, lastItemIndex: currItemIndex, lastVisitDate: new Date() });
     setWelcomeModalOpen(false);
   };
 
   const getCookie = () => {
-    const cookies = document.cookie.split(';');
+    const cookies = document.cookie.split(';'); // if they put a ';' in the name, you're gonna have a bad time
     const cookie = cookies.find((c) => c.trim().startsWith(cookieName));
     if (cookie) {
       console.log(`Cookie is ${cookie.trim()}`);
@@ -99,6 +115,15 @@ function App() {
     );
   };
 
+  /**
+   * Draws the welcome modal overlay.
+   * 
+   * This function creates a modal which displays a welcome message to the user.
+   * If the user has previously set their name, it greets them with a welcome back message.
+   * Otherwise, it shows a generic welcome message.
+   *
+   * @returns {JSX.Element} The rendered welcome modal component.
+   */
   const drawWelcome = () => {
     return (
       <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-75 flex justify-center items-center">
@@ -130,19 +155,20 @@ function App() {
     );
   };
 
+  const state = 
+      isLoading ? 'loading' 
+      : welcomeModalOpen ? 'welcome'
+      : nameIsSet ? 'showItem'
+      : 'intro';
+
   return (
     <div className="container mx-auto p-4 pt-6 md:p-6 lg:p-12 xl:p-20">
-      {welcomeModalOpen && drawWelcome()}
-      {!welcomeModalOpen && (
-        <div>{nameIsSet ? drawItem() : drawIntro()}</div>
-      )}
+      {state == 'welcome' ? drawWelcome() : null}
+      {state == 'showItem' ? drawItem() : null }
+      {state == 'intro' ? drawIntro() : null }
+      {state == 'loading' ? <div>Loading...</div> : null }
     </div>
   );
 }
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root') // Render to the #root element
-);
+export default App;

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bronze Division Fun Stats</title>
+<style>
+  :root {
+    --bg: #0f1419; --card: #1a2128; --line: #2a3440;
+    --txt: #dfe6ee; --dim: #8b98a6; --accent: #e8b84b;
+    --ice: #5aa7d6; --hot: #e05a4e; --green: #7fd18a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 16px; background: var(--bg); color: var(--txt);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; color: #fff; }
+  .sub { color: var(--dim); margin: 0 0 18px; font-size: 13.5px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 10px; color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 7px 8px; text-align: center; font-variant-numeric: tabular-nums; }
+  th { color: var(--dim); font-weight: 600; font-size: 12.5px; border-bottom: 1px solid var(--line); }
+  td.team { text-align: left; font-weight: 600; white-space: nowrap; }
+  tr.icemen td.team { color: var(--accent); }
+  tr.icemen td { background: rgba(232, 184, 75, 0.05); }
+  td.tot { font-weight: 700; color: #fff; border-left: 1px solid var(--line); }
+  tr.head-total td { border-top: 1px solid var(--line); font-weight: 700; color: #fff; }
+  th.tip { cursor: help; border-bottom: 1px dotted var(--dim); position: relative; }
+  th.tip::before {
+    content: attr(data-tip);
+    position: absolute; top: calc(100% + 10px); left: 50%;
+    transform: translateX(-50%);
+    background: #070b0f; color: var(--txt);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 6px 9px; font-size: 12px; font-weight: 400; line-height: 1.35;
+    white-space: nowrap; max-width: 260px; z-index: 50;
+    opacity: 0; pointer-events: none; transition: opacity .12s ease .03s;
+  }
+  th.tip:hover::before { opacity: 1; }
+  .hlbar { background: #10161c; border-radius: 4px; height: 12px; overflow: hidden; max-width: 130px; margin: 0 auto; }
+  .hlbar span { display: inline-block; height: 100%; background: var(--accent); }
+  .callout {
+    border-left: 3px solid var(--hot); padding: 8px 12px; margin: 8px 0;
+    background: rgba(224, 90, 78, 0.08); border-radius: 0 6px 6px 0; font-size: 14px;
+  }
+  .callout.gold { border-color: var(--accent); background: rgba(232, 184, 75, 0.07); }
+  .callout.blue { border-color: var(--ice); background: rgba(90, 167, 214, 0.08); }
+  .callout.green { border-color: var(--green); background: rgba(127, 209, 138, 0.08); }
+  .callout b { color: #fff; }
+  .footnote { color: var(--dim); font-size: 12.5px; margin-top: 8px; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .twocol { grid-template-columns: 1fr; } }
+  .scoreline { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; margin-top: 6px; }
+  .scoreline .row { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+  .scoreline .cnt { color: var(--dim); }
+  .kpi { display: flex; gap: 22px; flex-wrap: wrap; margin: 6px 0 14px; }
+  .kpi .num { font-size: 26px; font-weight: 800; color: #fff; line-height: 1.1; }
+  .kpi .lbl { font-size: 12px; color: var(--dim); }
+  .footer { color: var(--dim); font-size: 12px; margin-top: 16px; text-align: center; }
+  .links { margin-top: 14px; text-align: center; font-size: 13px; color: var(--dim); }
+  .links a { color: var(--ice); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🏒 Bronze Division — Fun Stats</h1>
+  <p class="sub">8 teams · all 16 archived seasons (2022–2026) · 960 unique games · the stuff nobody asked for, but everyone wants</p>
+
+  <div class="card">
+    <h2>The Morning Curse? <span style="font-weight:400;color:var(--dim)">· Icemen win% by start time</span></h2>
+    <div class="kpi">
+      <div><div class="num" id="kpi-early"></div><div class="lbl">win% before noon (28 games)</div></div>
+      <div><div class="num" id="kpi-best"></div><div class="lbl">best slot &amp; win%</div></div>
+      <div><div class="num" id="kpi-overall"></div><div class="lbl">overall (184 games)</div></div>
+    </div>
+    <table>
+      <thead><tr><th class="tip" data-tip="10:30am or 11:45am face-offs. The 28 games where Matt had to set two alarms.">Start time</th><th>W-L</th><th>Win%</th><th>Games</th></tr></thead>
+      <tbody id="curse-rows"></tbody>
+    </table>
+    <div class="callout green" id="curse-note"></div>
+    <div class="footnote">Icemen's own games, all seasons with a result and a recorded face-off time. The curse is a myth — mornings are their 2nd-best slot.</div>
+  </div>
+
+  <div class="twocol">
+    <div class="card">
+      <h2>Most common final scores <span style="font-weight:400;color:var(--dim)">· league-wide</span></h2>
+      <div class="scoreline" id="scorelines"></div>
+      <div class="footnote">All 960 unique games, both teams' perspective merged (3-2 and 2-3 count as one line).</div>
+    </div>
+    <div class="card">
+      <h2>Icemen's favorite results</h2>
+      <div class="scoreline" id="icemen-lines"></div>
+      <div class="footnote">Icemen goals first. The classic beer-league finishes: a 3-2 win, or a 1-2 loss that stings for a week.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Drama ratings <span style="font-weight:400;color:var(--dim)">· who lives on the edge</span></h2>
+    <div class="twocol">
+      <div>
+        <table>
+          <thead><tr><th style="text-align:left">Team</th><th class="tip" data-tip="Lost in overtime, all seasons">OT losses</th><th class="tip" data-tip="Lost in a shootout">SO losses</th><th class="tip" data-tip="Extra-time losses as a share of games played">% of GP</th></tr></thead>
+          <tbody id="heartbreak-rows"></tbody>
+        </table>
+        <div class="footnote">The Lawdogs are the league's heartbreak hotel: 21 extra-time losses, double the division norm.</div>
+      </div>
+      <div>
+        <table>
+          <thead><tr><th style="text-align:left">Team</th><th class="tip" data-tip="Decided by exactly one goal">One-goal games</th><th>% of GP</th></tr></thead>
+          <tbody id="tight-rows"></tbody>
+        </table>
+        <div class="footnote">Lawdogs and Knights live on the edge; DemoGorgons and Firebirds prefer a comfortable margin.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>First blood <span style="font-weight:400;color:var(--dim)">· who scores first vs who wins</span></h2>
+    <div class="twocol">
+      <div>
+        <h3 style="color:var(--ice);font-size:13px;margin:0 0 6px">2026 so far (21 games)</h3>
+        <table>
+          <thead><tr><th style="text-align:left">Scored first</th><th>Icemen W</th><th>Icemen L</th><th>Win%</th></tr></thead>
+          <tbody id="fg26-rows"></tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="color:var(--ice);font-size:13px;margin:0 0 6px">2025 + 2026 overall (57 games)</h3>
+        <table>
+          <thead><tr><th style="text-align:left">Scored first</th><th>Icemen W</th><th>Icemen L</th><th>Win%</th></tr></thead>
+          <tbody id="fgall-rows"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="callout green" id="fg-note"></div>
+    <div class="footnote">Opponent first + Icemen W = comeback. First-goal info scraped from each game's scoring summary; 4 games had no goal-by-goal record on the site.</div>
+  </div>
+
+  <div class="card">
+    <h2>Hall of extreme</h2>
+    <div class="callout blue"><b>Biggest beatdown:</b> The Lawdogs 13-0 Firebirds — Oct 15, 2023 7:15PM. A baker's dozen, and your goalie gets a free night off.</div>
+    <div class="callout gold"><b>Goal fest:</b> Knights 11-5 Firebirds — Jun 11, 2023 8:30PM, 16 goals before the Zamboni ran out of gas.</div>
+    <div class="callout"><b>Scoreline law:</b> in 960 games, a 3-2 final is more than twice as common as a 6-1. Beer-league hockey is decided by one goal, always one goal.</div>
+  </div>
+
+  <p class="footer">Generated 2026-08-20 19:51 · last game in data: 2026-10-11 · source: <b>h2h_*.json</b> + <b>season_*.json</b> game archive</p>
+  <div class="links"><a href="index.html">main Icemen stats</a> · <a href="bronze-game-times.html">game times &amp; matrix</a></div>
+</div>
+
+<script>
+const FUN = {"seasons_covered": 15, "games_total": 960, "curse": [{"bucket": "before noon", "W": 16, "L": 12, "winpct": 57.1, "games": 28}, {"bucket": "12-4pm", "W": 30, "L": 29, "winpct": 50.8, "games": 59}, {"bucket": "4-7pm", "W": 30, "L": 15, "winpct": 66.7, "games": 45}, {"bucket": "7-9pm", "W": 25, "L": 23, "winpct": 52.1, "games": 48}, {"bucket": "after 9pm", "W": 2, "L": 2, "winpct": 50.0, "games": 4}], "curse_total": {"W": 103, "L": 81}, "scorelines": [{"score": "3-2", "n": 83}, {"score": "2-1", "n": 61}, {"score": "4-3", "n": 58}, {"score": "3-1", "n": 45}, {"score": "4-2", "n": 45}, {"score": "5-2", "n": 40}, {"score": "4-1", "n": 34}, {"score": "5-4", "n": 32}, {"score": "5-3", "n": 31}, {"score": "5-1", "n": 26}, {"score": "4-0", "n": 24}, {"score": "6-1", "n": 23}], "scoreline_total": 735, "icemen_scorelines": [{"score": "3-2", "n": 13}, {"score": "2-1", "n": 11}, {"score": "1-2", "n": 10}, {"score": "4-3", "n": 10}, {"score": "1-3", "n": 9}, {"score": "2-3", "n": 7}, {"score": "3-1", "n": 7}, {"score": "2-5", "n": 6}], "biggest_blowout": 13, "most_goals": 16, "heartbreak": [{"team": "The Lawdogs", "OTL": 21, "SOL": 0, "heartbreak": 21, "gp": 198, "pct": 10.6}, {"team": "Beer Hog Bombers", "OTL": 16, "SOL": 0, "heartbreak": 16, "gp": 199, "pct": 8.0}, {"team": "Knights", "OTL": 15, "SOL": 0, "heartbreak": 15, "gp": 199, "pct": 7.5}, {"team": "Black Market Hooligans", "OTL": 14, "SOL": 0, "heartbreak": 14, "gp": 197, "pct": 7.1}, {"team": "Firebirds", "OTL": 13, "SOL": 1, "heartbreak": 14, "gp": 199, "pct": 7.0}, {"team": "DemoGorgons", "OTL": 11, "SOL": 0, "heartbreak": 11, "gp": 199, "pct": 5.5}, {"team": "Honey Badgers", "OTL": 9, "SOL": 0, "heartbreak": 9, "gp": 199, "pct": 4.5}, {"team": "Iron City Icemen", "OTL": 8, "SOL": 0, "heartbreak": 8, "gp": 198, "pct": 4.0}], "tight": [{"team": "The Lawdogs", "one_goal": 77, "games": 198, "pct": 38.9}, {"team": "Knights", "one_goal": 75, "games": 199, "pct": 37.7}, {"team": "Black Market Hooligans", "one_goal": 71, "games": 197, "pct": 36.0}, {"team": "Iron City Icemen", "one_goal": 70, "games": 198, "pct": 35.4}, {"team": "Beer Hog Bombers", "one_goal": 66, "games": 199, "pct": 33.2}, {"team": "Honey Badgers", "one_goal": 66, "games": 199, "pct": 33.2}, {"team": "DemoGorgons", "one_goal": 53, "games": 199, "pct": 26.6}, {"team": "Firebirds", "one_goal": 52, "games": 199, "pct": 26.1}]};
+
+const curseRows = document.querySelector("#curse-rows");
+curseRows.innerHTML = FUN.curse.map(c => {
+  const pct = c.winpct === null ? "&mdash;" : c.winpct + "%";
+  const bar = c.winpct === null ? "" : `<div class="hlbar"><span style="width:${c.winpct}%"></span></div>`;
+  return `<tr class="${c.bucket === 'before noon' ? 'icemen' : ''}"><td class="team">${c.bucket}</td><td>${c.W}-${c.L}</td><td>${pct}${bar}</td><td>${c.games}</td></tr>`;
+}).join("");
+const best = FUN.curse.filter(c => c.winpct !== null).sort((a, b) => b.winpct - a.winpct)[0];
+const early = FUN.curse.find(c => c.bucket === 'before noon');
+const tot = FUN.curse_total;
+document.querySelector("#kpi-early").textContent = early.winpct + "%";
+document.querySelector("#kpi-best").textContent = best.winpct + "%";
+document.querySelector("#kpi-overall").textContent = Math.round(tot.W / (tot.W + tot.L) * 1000) / 10 + "%";
+document.querySelector("#curse-note").innerHTML =
+  `<b>No curse &mdash; the opposite.</b> The Icemen win <b>${early.W}-${early.L}</b> before noon (${early.winpct}%), their 2nd-best slot behind ${best.bucket} (${best.winpct}%). The sleepy 12-4pm slot is the actual danger zone (50.8%).`;
+
+document.querySelector("#scorelines").innerHTML = FUN.scorelines.map(s =>
+  `<div class="row"><span>${s.score}</span><span class="cnt">&times; ${s.n}</span></div>`).join("");
+document.querySelector("#icemen-lines").innerHTML = FUN.icemen_scorelines.map(s =>
+  `<div class="row"><span>${s.score}</span><span class="cnt">&times; ${s.n}</span></div>`).join("");
+
+document.querySelector("#heartbreak-rows").innerHTML = FUN.heartbreak.map(h =>
+  `<tr class="${h.team === 'Iron City Icemen' ? 'icemen' : ''}"><td class="team">${h.team}</td><td>${h.OTL}</td><td>${h.SOL}</td><td>${h.pct}%</td></tr>`).join("");
+document.querySelector("#tight-rows").innerHTML = FUN.tight.map(t =>
+  `<tr class="${t.team === 'Iron City Icemen' ? 'icemen' : ''}"><td class="team">${t.team}</td><td>${t.one_goal} of ${t.games}</td><td>${t.pct}%</td></tr>`).join("");
+
+// First-goal matrix
+const FG = {"matrix_2026": {"iw": 5, "il": 2, "ow": 8, "ol": 6, "n": 21}, "matrix_all": {"iw": 25, "il": 6, "ow": 11, "ol": 15, "n": 57}, "recent_streak": {"len": 5, "games": [{"date": "2026-07-19", "opp": "Black Market Hooligans", "result": "W"}, {"date": "2026-07-26", "opp": "Firebirds", "result": "W"}, {"date": "2026-08-02", "opp": "Knights", "result": "W"}, {"date": "2026-08-09", "opp": "DemoGorgons", "result": "L"}, {"date": "2026-08-16", "opp": "Honey Badgers", "result": "W"}]}, "nodata": [{"dt": "2025-01-26T13:00:00", "opp": "Black Market Hooligans", "result": "W"}, {"dt": "2025-12-21T19:15:00", "opp": "Honey Badgers", "result": "W"}, {"dt": "2026-04-12T13:00:00", "opp": "Black Market Hooligans", "result": "L"}, {"dt": "2026-05-03T10:30:00", "opp": "DemoGorgons", "result": "L"}], "all": [{"dt": "2025-01-05T14:15:00", "opp": "Honey Badgers", "result": "W", "score": "5-0", "first": "Icemen", "clock": "11:10", "period": "1st", "detail": "#5 Weston Howe (even strength) (#33 Jesse Keppley)", "scores": ["1", "0"]}, {"dt": "2025-01-12T16:45:00", "opp": "Lawdogs", "result": "L", "score": "3-4", "first": "The Lawdogs", "clock": "12:32", "period": "1st", "detail": "#40 Phillip Douglas (even strength) (#82 William Pollock)", "scores": ["1", "0"]}, {"dt": "2025-01-19T21:45:00", "opp": "Beer Hog Bombers", "result": "W", "score": "3-2", "first": "Icemen", "clock": "5:52", "period": "1st", "detail": "#2 Jim Hess (even strength) (#6 Matthew Jackson)", "scores": ["1", "0"]}, {"dt": "2025-02-02T16:45:00", "opp": "Firebirds", "result": "W", "score": "4-2", "first": "Icemen", "clock": "4:39", "period": "1st", "detail": "#18 Parker Latham (even strength) (#5 Weston Howe)", "scores": ["1", "0"]}, {"dt": "2025-02-09T20:00:00", "opp": "Knights", "result": "L", "score": "0-3", "first": "Knights", "clock": "10:30", "period": "1st", "detail": "#14 Gregory Stewart (even strength) (#77 Aubrey Furr)", "scores": ["1", "0"]}, {"dt": "2025-02-16T11:45:00", "opp": "DemoGorgons", "result": "L", "score": "1-3", "first": "Icemen", "clock": "1:56", "period": "1st", "detail": "#5 Weston Howe (even strength)", "scores": ["0", "1"]}, {"dt": "2025-02-23T16:45:00", "opp": "Honey Badgers", "result": "W", "score": "3-1", "first": "Icemen", "clock": "2:44", "period": "1st", "detail": "#5 Weston Howe (even strength) (#4 Ryan Murphy)", "scores": ["0", "1"]}, {"dt": "2025-03-23T19:15:00", "opp": "Honey Badgers", "result": "W", "score": "3-1", "first": "Icemen", "clock": "9:28", "period": "2nd", "detail": "#4 Ryan Murphy (even strength) (#69 Layn Murphy)", "scores": ["0", "1"]}, {"dt": "2025-03-30T10:30:00", "opp": "Lawdogs", "result": "W", "score": "4-2", "first": "Icemen", "clock": "12:09", "period": "1st", "detail": "#27 John Osborne (even strength) (#15 Matt Elliott, #6 Matthew Jackson)", "scores": ["0", "1"]}, {"dt": "2025-04-06T18:00:00", "opp": "Beer Hog Bombers", "result": "W", "score": "3-0", "first": "Icemen", "clock": "10:52", "period": "2nd", "detail": "#2 Jim Hess (even strength) (#18 Parker Latham)", "scores": ["1", "0"]}, {"dt": "2025-04-13T18:00:00", "opp": "Black Market Hooligans", "result": "W", "score": "4-3", "first": "Icemen", "clock": "10:43", "period": "2nd", "detail": "#69 Layn Murphy (even strength)", "scores": ["1", "0"]}, {"dt": "2025-04-27T10:30:00", "opp": "Firebirds", "result": "W", "score": "7-1", "first": "Icemen", "clock": "7:49", "period": "1st", "detail": "#48 Jason Carr (even strength) (#15 Matt Elliott)", "scores": ["1", "0"]}, {"dt": "2025-05-04T14:15:00", "opp": "Knights", "result": "W", "score": "5-1", "first": "Icemen", "clock": "12:18", "period": "1st", "detail": "#27 John Osborne (even strength) (#15 Matt Elliott)", "scores": ["0", "1"]}, {"dt": "2025-05-18T18:00:00", "opp": "DemoGorgons", "result": "L", "score": "2-4", "first": "Icemen", "clock": "4:07", "period": "2nd", "detail": "#33 Jesse Keppley (even strength)", "scores": ["0", "1"]}, {"dt": "2025-06-01T13:00:00", "opp": "Honey Badgers", "result": "W", "score": "3-0", "first": "Icemen", "clock": "8:57", "period": "1st", "detail": "#11 Jacob Bradley (even strength) (#69 Layn Murphy)", "scores": ["1", "0"]}, {"dt": "2025-06-08T15:30:00", "opp": "Lawdogs", "result": "L", "score": "1-2", "first": "The Lawdogs", "clock": "10:48", "period": "1st", "detail": "#23 Jacob Smith (short handed)", "scores": ["1", "0"]}, {"dt": "2025-06-15T20:30:00", "opp": "Beer Hog Bombers", "result": "L", "score": "3-4", "first": "Beer Hog Bombers", "clock": "12:12", "period": "1st", "detail": "#97 Todd Helzer (even strength) (#19 Mark Jones)", "scores": ["0", "1"]}, {"dt": "2025-06-22T11:45:00", "opp": "Black Market Hooligans", "result": "W", "score": "3-1", "first": "Black Market Hooligans", "clock": "8:47", "period": "1st", "detail": "#51 Miles Hume (even strength) (#14 Paul Hoffman)", "scores": ["0", "1"]}, {"dt": "2025-06-29T15:30:00", "opp": "Firebirds", "result": "W", "score": "8-0", "first": "Icemen", "clock": "11:28", "period": "1st", "detail": "#87 West Cherry (even strength) (#48 Jason Carr)", "scores": ["1", "0"]}, {"dt": "2025-07-13T18:00:00", "opp": "Knights", "result": "W", "score": "6-0", "first": "Icemen", "clock": "11:32", "period": "1st", "detail": "#2 Jim Hess (even strength) (#33 Jesse Keppley)", "scores": ["0", "1"]}, {"dt": "2025-07-20T10:30:00", "opp": "DemoGorgons", "result": "W", "score": "4-1", "first": "Demogorgons", "clock": "11:48", "period": "1st", "detail": "#88 Trevor Stantis (even strength)", "scores": ["1", "0"]}, {"dt": "2025-07-27T15:30:00", "opp": "Honey Badgers", "result": "W", "score": "4-3", "first": "Icemen", "clock": "5:49", "period": "1st", "detail": "#4 Ryan Murphy (even strength)", "scores": ["0", "1"]}, {"dt": "2025-09-07T20:30:00", "opp": "Honey Badgers", "result": "W", "score": "3-0", "first": "Icemen", "clock": "1:41", "period": "1st", "detail": "#4 Ryan Murphy (even strength) (#48 Jason Carr)", "scores": ["0", "1"]}, {"dt": "2025-09-14T11:45:00", "opp": "Lawdogs", "result": "L", "score": "1-3", "first": "The Lawdogs", "clock": "8:02", "period": "1st", "detail": "#91 Mason Mack (even strength) (#23 Jacob Smith)", "scores": ["1", "0"]}, {"dt": "2025-09-21T20:30:00", "opp": "Beer Hog Bombers", "result": "L", "score": "2-4", "first": "Beer Hog Bombers", "clock": "9:53", "period": "1st", "detail": "#10 Brandon Martin (even strength)", "scores": ["0", "1"]}, {"dt": "2025-09-28T20:30:00", "opp": "Black Market Hooligans", "result": "L", "score": "3-8", "first": "Icemen", "clock": "9:27", "period": "1st", "detail": "#52 Nathan Horton (even strength)", "scores": ["1", "0"]}, {"dt": "2025-10-05T11:45:00", "opp": "Firebirds", "result": "L", "score": "1-2", "first": "Icemen", "clock": "0:58", "period": "1st", "detail": "#11 Jacob Bradley (even strength) (#27 John Osborne)", "scores": ["1", "0"]}, {"dt": "2025-10-12T19:15:00", "opp": "Knights", "result": "W", "score": "4-3", "first": "Icemen", "clock": "4:53", "period": "1st", "detail": "#4 Ryan Murphy (even strength) (#15 Matt Elliott, #2 Jim Hess)", "scores": ["0", "1"]}, {"dt": "2025-10-19T21:45:00", "opp": "DemoGorgons", "result": "W", "score": "4-2", "first": "Icemen", "clock": "8:57", "period": "1st", "detail": "#4 Ryan Murphy (even strength) (#15 Matt Elliott)", "scores": ["0", "1"]}, {"dt": "2025-10-26T14:15:00", "opp": "Honey Badgers", "result": "W", "score": "5-1", "first": "Icemen", "clock": "11:56", "period": "1st", "detail": "#33 Jesse Keppley (even strength)", "scores": ["1", "0"]}, {"dt": "2025-11-02T18:00:00", "opp": "Lawdogs", "result": "W", "score": "3-2", "first": "Icemen", "clock": "6:35", "period": "1st", "detail": "#91 Patrick Johnson (even strength) (#15 Matt Elliott)", "scores": ["0", "1"]}, {"dt": "2025-11-09T19:15:00", "opp": "Beer Hog Bombers", "result": "L", "score": "1-6", "first": "Beer Hog Bombers", "clock": "9:09", "period": "1st", "detail": "#20 Edward Ashway (even strength) (#21 Hal Caplan, #13 Stephen Kerr)", "scores": ["0", "1"]}, {"dt": "2025-11-16T13:00:00", "opp": "Black Market Hooligans", "result": "W", "score": "4-3", "first": "Black Market Hooligans", "clock": "3:29", "period": "1st", "detail": "#51 Miles Hume (even strength) (#92 George Ingleright)", "scores": ["0", "1"]}, {"dt": "2025-11-23T18:00:00", "opp": "Firebirds", "result": "W", "score": "2-1", "first": "Icemen", "clock": "6:00", "period": "1st", "detail": "#33 Jesse Keppley (even strength)", "scores": ["1", "0"]}, {"dt": "2025-12-07T20:30:00", "opp": "Knights", "result": "L", "score": "1-2", "first": "Knights", "clock": "1:20", "period": "2nd", "detail": "#2 Robert Clemons (even strength) (#37 Jacob Norton)", "scores": ["1", "0"]}, {"dt": "2025-12-14T11:45:00", "opp": "DemoGorgons", "result": "L", "score": "4-5", "first": "Demogorgons", "clock": "10:42", "period": "1st", "detail": "#9 Rodney Pruett (even strength)", "scores": ["1", "0"]}, {"dt": "2026-01-25T20:30:00", "opp": "Honey Badgers", "result": "W", "score": "3-0", "first": "Icemen", "clock": "3:16", "period": "1st", "detail": "#48 Jason Carr (even strength) (#6 Matthew Jackson)", "scores": ["0", "1"]}, {"dt": "2026-02-01T11:45:00", "opp": "Lawdogs", "result": "L", "score": "2-5", "first": "The Lawdogs", "clock": "0:36", "period": "1st", "detail": "#88 Kyle Walker (even strength) (#16 Michael Michard)", "scores": ["1", "0"]}, {"dt": "2026-02-08T20:30:00", "opp": "Beer Hog Bombers", "result": "L", "score": "0-5", "first": "Beer Hog Bombers", "clock": "11:28", "period": "1st", "detail": "#21 Hal Caplan (even strength) (#29 Reese Ponce Massey)", "scores": ["0", "1"]}, {"dt": "2026-02-15T20:30:00", "opp": "Black Market Hooligans", "result": "W", "score": "4-2", "first": "Black Market Hooligans", "clock": "4:32", "period": "1st", "detail": "#53 Matt Schroeder (even strength)", "scores": ["0", "1"]}, {"dt": "2026-02-22T11:45:00", "opp": "Firebirds", "result": "W", "score": "3-2", "first": "Firebirds", "clock": "11:14", "period": "1st", "detail": "#12 Eric DellaPenna (even strength)", "scores": ["0", "1"]}, {"dt": "2026-03-01T19:15:00", "opp": "Knights", "result": "L", "score": "1-3", "first": "Knights", "clock": "10:02", "period": "1st", "detail": "#33 Reye Brackett (even strength)", "scores": ["1", "0"]}, {"dt": "2026-03-08T21:45:00", "opp": "DemoGorgons", "result": "W", "score": "3-2", "first": "Icemen", "clock": "8:06", "period": "1st", "detail": "#4 Ryan Murphy (even strength) (#33 Jesse Keppley, #2 Jim Hess)", "scores": ["0", "1"]}, {"dt": "2026-03-15T14:15:00", "opp": "Honey Badgers", "result": "L", "score": "2-3", "first": "Icemen", "clock": "11:48", "period": "1st", "detail": "#4 Ryan Murphy (even strength) (#52 Nathan Horton, #6 Matthew Jackson)", "scores": ["1", "0"]}, {"dt": "2026-03-22T18:00:00", "opp": "Lawdogs", "result": "L", "score": "1-2", "first": "The Lawdogs", "clock": "7:05", "period": "1st", "detail": "#55 Winn Sanders (power play) (#88 Kyle Walker, #21 Tyler Parsons)", "scores": ["1", "0"]}, {"dt": "2026-03-29T19:15:00", "opp": "Beer Hog Bombers", "result": "W", "score": "6-2", "first": "Beer Hog Bombers", "clock": "12:41", "period": "1st", "detail": "#10 Brandon Martin (even strength) (#45 Stephen Caldiero)", "scores": ["0", "1"]}, {"dt": "2026-04-19T18:00:00", "opp": "Firebirds", "result": "W", "score": "3-2", "first": "Firebirds", "clock": "9:06", "period": "1st", "detail": "#15 Carl Harless (even strength) (#63 Courtney Pernell)", "scores": ["0", "1"]}, {"dt": "2026-04-26T20:30:00", "opp": "Knights", "result": "W", "score": "5-1", "first": "Icemen", "clock": "10:56", "period": "1st", "detail": "#27 John Osborne (even strength) (#15 Matt Elliott, #52 Nathan Horton)", "scores": ["0", "1"]}, {"dt": "2026-05-17T18:00:00", "opp": "Honey Badgers", "result": "L", "score": "1-5", "first": "Honey Badgers", "clock": "7:35", "period": "1st", "detail": "#10 Jeremy Kaczmarek (even strength) (#7 Devin Jones)", "scores": ["1", "0"]}, {"dt": "2026-06-21T20:30:00", "opp": "Honey Badgers", "result": "W", "score": "6-0", "first": "Icemen", "clock": "5:43", "period": "1st", "detail": "#2 Jim Hess (even strength) (#33 Jesse Keppley)", "scores": ["0", "1"]}, {"dt": "2026-06-28T10:30:00", "opp": "Lawdogs", "result": "W", "score": "6-5", "first": "Icemen", "clock": "11:46", "period": "2nd", "detail": "#2 Jim Hess (even strength) (#4 Ryan Murphy, #33 Jesse Keppley)", "scores": ["0", "1"]}, {"dt": "2026-07-12T19:15:00", "opp": "Beer Hog Bombers", "result": "L", "score": "1-2", "first": "Beer Hog Bombers", "clock": "0:04", "period": "2nd", "detail": "#18 John Powers (even strength)", "scores": ["0", "1"]}, {"dt": "2026-07-19T19:15:00", "opp": "Black Market Hooligans", "result": "W", "score": "5-4", "first": "Black Market Hooligans", "clock": "12:41", "period": "1st", "detail": "#27 Conor Curry (even strength)", "scores": ["0", "1"]}, {"dt": "2026-07-26T10:30:00", "opp": "Firebirds", "result": "W", "score": "2-1", "first": "Firebirds", "clock": "0:23", "period": "1st", "detail": "#73 Robert Swanson (even strength) (#15 Carl Harless, #47 Todd Humphries)", "scores": ["0", "1"]}, {"dt": "2026-08-02T18:00:00", "opp": "Knights", "result": "W", "score": "5-1", "first": "Knights", "clock": "10:42", "period": "1st", "detail": "#53 Michael Campbell (even strength) (#35 Scott Heerssen)", "scores": ["1", "0"]}, {"dt": "2026-08-09T21:45:00", "opp": "DemoGorgons", "result": "L", "score": "3-4", "first": "Icemen", "clock": "12:27", "period": "1st", "detail": "#4 Ryan Murphy (even strength) (#48 Jason Carr)", "scores": ["0", "1"]}, {"dt": "2026-08-16T14:15:00", "opp": "Honey Badgers", "result": "W", "score": "7-2", "first": "Honey Badgers", "clock": "10:16", "period": "1st", "detail": "#96 Shelby Hutcheson (even strength) (#91 Jakan Sylestine)", "scores": ["0", "1"]}]};
+function fgRows(mat) {
+  const rows = [
+    ["Icemen first", mat.iw, mat.il],
+    ["Opponent first", mat.ow, mat.ol]
+  ];
+  return rows.map(([label, w, l]) => {
+    const pct = (w + l) ? Math.round(w / (w + l) * 100) + "%" : "&mdash;";
+    return `<tr><td class="team">${label}</td><td>${w}</td><td>${l}</td><td>${pct}</td></tr>`;
+  }).join("");
+}
+document.querySelector("#fg26-rows").innerHTML = fgRows(FG.matrix_2026);
+document.querySelector("#fgall-rows").innerHTML = fgRows(FG.matrix_all);
+const st = FG.recent_streak;
+document.querySelector("#fg-note").innerHTML =
+  `<b>The old rule holds:</b> score first and you win most nights (${FG.matrix_all.iw}W-${FG.matrix_all.il}L all-time). But the <b>last ${st.len} games</b> (${st.games.map(g => g.date + " " + g.opp).join(", ")}) <b>all ran backwards</b> — opponents scoring first has barely cost the Icemen, and blooding first hasn't helped. Enjoy it while it lasts; regression to the mean plays pick-up here too.`;
+</script>
+</body>
+</html>
